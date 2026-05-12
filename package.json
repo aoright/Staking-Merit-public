@@ -1,0 +1,32 @@
+{
+  "name": "shieldwall",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI-Powered Web3 Transaction Firewall — Know what you sign before you sign it",
+  "author": "ShieldWall Contributors",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "typecheck": "turbo run typecheck",
+    "dev:extension": "pnpm --filter @shieldwall/extension dev",
+    "build:extension": "pnpm --filter @shieldwall/extension build",
+    "dev:server": "pnpm --filter @shieldwall/server dev",
+    "build:server": "pnpm --filter @shieldwall/server build"
+  },
+  "devDependencies": {
+    "turbo": "^2.4.0",
+    "typescript": "^5.7.0",
+    "prettier": "^3.4.0",
+    "eslint": "^9.0.0",
+    "@types/node": "^22.0.0"
+  },
+  "packageManager": "pnpm@9.15.0"
+}
