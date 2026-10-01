@@ -1,0 +1,52 @@
+# ShieldWall
+
+> ShieldWall is an On-Chain Transaction Guardian Protocol on Monad. It features a smart contract wallet with a built-in, on-chain security rules engine that checks every transaction before execution, made practical by Monad's parallel execution and low gas fees (50 gwei).
+
+## Architecture Overview
+
+ShieldWall consists of a suite of smart contracts written in Solidity (v0.8.25) designed to prevent phishing, malicious contract interactions, and unauthorized spending:
+
+- **GuardianWallet**: Individual smart contract wallet containing the security rules engine. Intercepts `execute(address to, uint256 value, bytes calldata data)` calls and evaluates security rules before making external calls.
+- **ShieldWallFactory**: Factory contract using `CREATE2` to deploy user GuardianWallets deterministically and track registered wallets per user.
+- **ThreatRegistry**: Decentralized, community-driven threat database. Users stake MON to submit threat reports on malicious contract addresses. The community votes with reputation-weighted voting. Confirmed threats update the target's on-chain threat level.
+- **MeritNFT**: Minimal ERC-721 token ("赛博功德") featuring fully on-chain SVG generation. Minted to reporters when their threat reports are confirmed by community voting in ThreatRegistry.
+
+## Security Rules Engine (7 On-Chain Rules)
+
+Every transaction routed through `GuardianWallet` is checked against the following rules in `_checkSecurity()` before execution:
+
+1. **Emergency Pause**: Halts all outgoing transactions when activated by the owner.
+2. **Blacklist Check**: Blocks transactions directed to known malicious addresses or approved spenders.
+3. **Whitelist-Only Mode**: When enabled, restricts outgoing transactions strictly to whitelisted addresses.
+4. **Per-Transaction Value Limit**: Caps native MON value transferred in a single transaction.
+5. **Daily Spending Limit**: Enforces a cumulative cap on native MON spent within a 24-hour window.
+6. **High-Value Cooldown**: Enforces a minimum delay (e.g. 5 minutes) between consecutive high-value transfers.
+7. **Threat Registry Integration**: Query target address in `ThreatRegistry` and blocks transactions to targets flagged with HIGH or CRITICAL risk levels.
+8. **ERC-20 Security Checks**: Inspects call data for standard ERC-20 methods (`transfer`, `approve`, `transferFrom`, `increaseAllowance`) to block infinite approvals (>= 2^128 - 1) and transfers exceeding token spending caps.
+
+## Monad Testnet Deployment
+
+ShieldWall is specifically designed for Monad due to its high throughput, parallel EVM execution, and ultra-low transaction fees (~50 gwei), making complex on-chain security checks cost-effective (< $0.001 per transaction vs $5-$20 on Ethereum mainnet).
+
+### Deployment Parameters & Configuration
+
+- **Target Chain**: Monad Testnet
+- **Chain ID**: 10143
+- **Currency**: MON
+- **RPC URL**: `https://testnet-rpc.monad.xyz`
+- **Block Explorer / Verifier**: BlockVision / Sourcify (`https://sourcify-api-monad.blockvision.org`)
+- **Gas Price**: 50 gwei
+
+### Smart Contract Files
+
+- `contracts/src/GuardianWallet.sol`: Smart contract wallet with on-chain rules engine and 2-step ownership transfer.
+- `contracts/src/ShieldWallFactory.sol`: Deterministic CREATE2 factory for deploying GuardianWallets.
+- `contracts/src/ThreatRegistry.sol`: Decentralized threat intelligence registry with stake-to-report and reputation-weighted voting.
+- `contracts/src/MeritNFT.sol`: Fully on-chain SVG ERC-721 NFT awarded to valid threat reporters.
+- `contracts/script/Deploy.s.sol`: Foundry deployment script for contract deployment.
+
+## Testing & Local Development
+
+- Project relies on **Foundry** (`forge`) for compilation and testing.
+- Test suite location: `contracts/test/ShieldWall.t.sol`
+- Test command: `cd contracts && forge test -vv`

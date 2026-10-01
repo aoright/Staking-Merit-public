@@ -7,7 +7,7 @@
     <img src="https://img.shields.io/badge/chain-Monad_Testnet-836EF9.svg" alt="Chain" />
     <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License" />
     <img src="https://img.shields.io/badge/solidity-0.8.25-363636.svg" alt="Solidity" />
-    <img src="https://img.shields.io/badge/tests-13_passed-22c55e.svg" alt="Tests" />
+    <img src="https://img.shields.io/badge/tests-24_passed-22c55e.svg" alt="Tests" />
   </p>
 </div>
 
@@ -73,8 +73,9 @@ Every year, **billions of dollars** are lost to phishing, malicious contracts, a
 | Contract | Description |
 |----------|-------------|
 | **ShieldWallFactory** | Factory — deploys personal GuardianWallets via CREATE2 |
-| **GuardianWallet** | Smart contract wallet with 6 configurable security rules |
+| **GuardianWallet** | Smart contract wallet with 7 configurable security rules |
 | **ThreatRegistry** | Decentralized threat database with stake-to-report governance |
+| **MeritNFT** | On-chain SVG NFT awarded to verified threat reporters ("赛博功德") |
 
 ### Security Rules (All Enforced On-Chain)
 
@@ -87,26 +88,71 @@ Every year, **billions of dollars** are lost to phishing, malicious contracts, a
 | **Blacklist** | Block transactions to known-bad addresses |
 | **Threat Check** | Auto-check destination against community threat registry |
 | **Emergency Pause** | Instantly freeze all outgoing transactions |
+| **ERC-20 Analysis** | Block unlimited token approvals and enforce token spending limits |
 
 ---
 
-## Quick Start
+## Running Local Tests (Step-by-Step)
+
+Follow these detailed steps to compile smart contracts and run the full test suite locally.
 
 ### Prerequisites
-- [Foundry](https://book.getfoundry.sh/getting-started/installation)
-- Node.js >= 18 / pnpm
-- A wallet with Monad Testnet MON ([Faucet](https://testnet.monad.xyz))
 
-### 1. Compile & Test Contracts
+- **Foundry** toolchain (`forge`, `cast`, `anvil`) installed. If not installed, run:
+  ```bash
+  curl -L https://foundry.paradigm.xyz | bash
+  foundryup
+  ```
+- **Node.js** >= 18 and **pnpm** (if running or building the web interface).
+
+### Step 1: Navigate to the Contracts Directory
 
 ```bash
 cd contracts
-forge install
-forge build
-forge test -vv   # 13/13 tests pass
 ```
 
-### 2. Deploy to Monad Testnet
+### Step 2: Install Dependencies (if needed)
+
+Foundry dependencies (e.g. `forge-std`) are managed in `contracts/lib`:
+
+```bash
+forge install
+```
+
+### Step 3: Build Smart Contracts
+
+Compile all Solidity contracts (`GuardianWallet`, `ShieldWallFactory`, `ThreatRegistry`, `MeritNFT`) using Solc 0.8.25:
+
+```bash
+forge build
+```
+
+### Step 4: Execute the Test Suite
+
+Run the full automated unit and integration test suite located at `test/ShieldWall.t.sol`:
+
+```bash
+forge test -vv
+```
+
+#### Test Options & Flag Reference:
+- `forge test`: Runs all tests silently.
+- `forge test -vv`: Display test logs and execution summaries.
+- `forge test -vvv`: Display execution traces for failing tests.
+- `forge test -vvvv`: Display full execution and setup traces for all tests.
+- `forge test --match-test test_blockBlacklisted`: Run a specific test case by name.
+
+#### What the Tests Verify:
+The test suite consists of 24 comprehensive test cases verifying:
+- **Wallet Creation**: CREATE2 deterministic deployment and duplicate prevention.
+- **Rule Enforcement**: Per-transaction value limits, daily caps, high-value cooldowns, and emergency pausing.
+- **Access Controls**: 2-step ownership transfer and caller authorization.
+- **Threat Governance**: Threat report submission, stake-weighted voting, reward payouts, and Merit NFT minting.
+- **ERC-20 Protections**: Unlimited approval blocking and spender blacklist enforcement.
+
+---
+
+## Deployment to Monad Testnet
 
 ```bash
 export PRIVATE_KEY=your_private_key_here
@@ -120,7 +166,11 @@ forge script script/Deploy.s.sol:Deploy \
 
 After deployment, update the contract addresses in `frontend/src/config/chain.ts`.
 
-### 3. Run the Frontend
+---
+
+## Frontend Setup
+
+### Run Frontend Locally
 
 ```bash
 cd frontend
@@ -128,11 +178,10 @@ pnpm install
 pnpm dev         # http://localhost:5173
 ```
 
-### 4. Deploy Frontend
+### Deploy Frontend
 
 ```bash
 pnpm build       # Output in frontend/dist/
-# Deploy to Vercel, Netlify, etc.
 ```
 
 ---
@@ -173,4 +222,3 @@ forge verify-contract \
 ## License
 
 MIT
-</div>
